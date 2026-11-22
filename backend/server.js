@@ -10,14 +10,28 @@ const session = require('express-session');
 const db = require('./db');
 
 const app = express();
+const isProd = process.env.NODE_ENV === 'production';
+
+// Render (and most hosts) sit behind a proxy; needed for secure cookies
+app.set('trust proxy', 1);
 app.get('/test-server', (req, res) => {
     res.send('Updated FoodExpress server is running!');
 });
 
 app.use(express.json());
 
+const allowedOrigins = [
+    'http://127.0.0.1:5501',
+    'http://localhost:5501',
+    ...(process.env.FRONTEND_ORIGINS || '').split(',').map(o => o.trim()).filter(Boolean)
+];
+
 app.use(cors({
-    origin: 'http://127.0.0.1:5501',
+    origin: (origin, callback) => {
+        // allow non-browser tools (no origin) and whitelisted origins
+        if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+        return callback(new Error('Not allowed by CORS'));
+    },
     credentials: true
 }));
 
@@ -28,8 +42,8 @@ app.use(session({
     saveUninitialized: false,
     cookie: {
         httpOnly: true,
-        secure: false, // Local development only (HTTP)
-        sameSite: 'lax',
+        secure: isProd,                    // HTTPS only in production
+        sameSite: isProd ? 'none' : 'lax', // cross-site cookie (github.io -> onrender.com)
         maxAge: 60 * 60 * 1000
     }
 }));
@@ -126,7 +140,11 @@ app.post('/api/admin/logout', requireAdmin, (req, res) => {
             });
         }
 
-        res.clearCookie('foodexpress_admin_session');
+        res.clearCookie('foodexpress_admin_session', {
+            httpOnly: true,
+            secure: isProd,
+            sameSite: isProd ? 'none' : 'lax'
+        });
 
         res.json({
             message: 'Logged out successfully'
@@ -988,7 +1006,8 @@ app.put(
     }
 );
 
-app.listen(3000, () => {
-    console.log('Server running on port 3000');
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
