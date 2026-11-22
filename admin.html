@@ -516,6 +516,13 @@ tbody tr:last-child td {
 
 </style>
 
+<script>
+    // Backend URL: local dev uses localhost, deployed site uses Render.
+    // TODO: replace with your real Render URL after deploying the backend.
+    const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+    ? 'http://127.0.0.1:3000'
+    : 'https://food-express-pc7m.onrender.com';
+</script>
 </head>
 <body>
 
@@ -644,7 +651,7 @@ let allOrders = [];
 async function loadOrders() {
     try {
         const response = await fetch(
-            'http://127.0.0.1:3000/admin/orders',
+            API_BASE + '/admin/orders',
             {
                 credentials: 'include'
             }
@@ -687,7 +694,7 @@ async function loadOrders() {
 async function initializeDashboard() {
     try {
         const response = await fetch(
-            'http://127.0.0.1:3000/api/admin/session',
+            API_BASE + '/api/admin/session',
             {
                 credentials: 'include'
             }
@@ -979,7 +986,7 @@ async function renderDeliveryAssignment(order) {
 
     try {
         const response = await fetch(
-            'http://127.0.0.1:3000/admin/delivery-persons',
+            API_BASE + '/admin/delivery-persons',
             {
                 credentials:"include"
             }
@@ -1059,7 +1066,7 @@ async function assignDeliveryPerson(orderId) {
 
     try {
         const response = await fetch(
-            `http://127.0.0.1:3000/orders/${encodeURIComponent(orderId)}/assign-delivery-person`,
+            `${API_BASE}/orders/${encodeURIComponent(orderId)}/assign-delivery-person`,
             {
                 method: 'PUT',
                 credentials:"include",
@@ -1103,7 +1110,7 @@ async function updateOrderStatus(orderId, newStatus) {
 
     try {
         const response = await fetch(
-            `http://127.0.0.1:3000/orders/${encodeURIComponent(orderId)}`,
+            `${API_BASE}/orders/${encodeURIComponent(orderId)}`,
             {
                 method: 'PUT',
                 credentials:"include",
@@ -1166,7 +1173,7 @@ async function updateOrderStatus(orderId, newStatus) {
 async function adminLogout() {
     try {
         const response = await fetch(
-            'http://127.0.0.1:3000/api/admin/logout',
+            API_BASE + '/api/admin/logout',
             {
                 method: 'POST',
                 credentials: 'include'
